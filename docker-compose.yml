@@ -1,0 +1,107 @@
+version: "1.0"
+
+services:
+
+  mssql:
+    environment:
+      ACCEPT_EULA: "Y"
+      SA_PASSWORD: "${MSSQL_DB_PASSWORD}"
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: mssql
+    ports:
+      - 14336:14333
+    volumes:
+      - mssql:/var/opt/mssql
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:16
+    container_name: postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: "${POSTGRE_DB_PASSWORD}"
+      POSTGRES_DB: "${POSTGRE_DB}"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  mongodb:
+    image: mongo:7
+    container_name: mongodb
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: "${MONGO_DB_PASSWORD}"
+    volumes:
+      - mongodbdata:/data/db
+    restart: unless-stopped
+
+  azureite:
+    image: mcr.microsoft.com/azure-storage/azurite:latest
+    ports:
+      - "10000:10000"
+      - "10001:10001"
+      - "10002:10002"
+    command: "azurite --blobPort 10000 --blobHost 0.0.0.0 --queuePort 10001 --queueHost 0.0.0.0 --tablePort 10002 --tableHost 0.0.0.0 --loose --skipApiVersionCheck"
+    volumes:
+      - azurite-storage:/data
+
+  mailhog:
+    image: mailhog/mailhog
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+
+  minio:
+    image: minio/minio
+    container_name: minio
+    ports:
+      - "9000:9000" # API port
+      - "9001:9001" # Web UI
+    
+    environment:
+      MINIO_ROOT_USER: "${MINIO_ROOT_USER}"
+      MINIO_ROOT_PASSWORD: "${MINIO_ROOT_PASSWORD}"
+
+    volumes:
+      - minio-data:/data
+
+    command: server --console-address ":9001" /data
+
+  localstack:
+    image: localstack/localstack
+    container_name: localstack
+    ports:
+      - "4566:4566"
+      - "4571:4571"
+
+    environment:
+      - SERVICES=s3,sqs,lambda
+      - DEBUG=1
+      - DATA_DIR=/var/lib/localstack
+      - LAMBDA_EXECUTOR=docker-reuse
+      - DOCKER_HOST=unix:///var/run/docker.sock
+
+    volumes:
+      - localstack-data:/var/lib/localstack
+      - /var/run/docker.sock:/var/run/docker.sock
+
+  file-uploader:
+    image: nginx:alpine # Placeholder; replace with your own file upload backend
+    container_name: file-uploader
+    ports:
+      - "8080:80"
+
+    volumes:
+      - ./uploads:/usr/share/nginx/html/uploads
+
+volumes:
+  mssql:
+  pgdata:
+  mongodbdata:
+  azureite-storage:
+  minio-data:
+  localstack-data:
