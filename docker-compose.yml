@@ -27,6 +27,22 @@ services:
       - pgdata:/var/lib/postgresql/data
     restart: unless-stopped
 
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin_ui
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: "${POSTGRE_DB_EMAIL}"
+      PGADMIN_DEFAULT_PASSWORD: "${POSTGRE_DB_PASSWORD}"
+    ports:
+      - "8084:80"
+
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 8085:8080
+
   mongodb:
     image: mongo:7
     container_name: mongodb
@@ -75,19 +91,21 @@ services:
     image: localstack/localstack
     container_name: localstack
     ports:
-      - "4566:4566"
-      - "4571:4571"
+      - "4566:4566"            # LocalStack Gateway
+      - "4510-4559:4510-4559"  # external services port range
 
     environment:
-      - SERVICES=s3,sqs,lambda
       - DEBUG=1
-      - DATA_DIR=/var/lib/localstack
-      - LAMBDA_EXECUTOR=docker-reuse
-      - DOCKER_HOST=unix:///var/run/docker.sock
+      - AWS_DEFAULT_REGION=${AWS_REGION}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
 
     volumes:
-      - localstack-data:/var/lib/localstack
-      - /var/run/docker.sock:/var/run/docker.sock
+      - ./storage/localstack:/var/lib/localstack
+      - "/var/run/docker.sock:/var/run/docker.sock"
+      
+    networks:
+      - my_network
 
   file-uploader:
     image: nginx:alpine # Placeholder; replace with your own file upload backend
@@ -104,4 +122,9 @@ volumes:
   mongodbdata:
   azureite-storage:
   minio-data:
+  azurite-storage:
   localstack-data:
+
+networks:
+  my_network:
+    driver: bridge
