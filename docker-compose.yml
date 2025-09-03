@@ -30,7 +30,7 @@ services:
   pgadmin:
     image: dpage/pgadmin4
     container_name: pgadmin_ui
-    restart: always
+    restart: unless-stopped
     environment:
       PGADMIN_DEFAULT_EMAIL: "${POSTGRE_DB_EMAIL}"
       PGADMIN_DEFAULT_PASSWORD: "${POSTGRE_DB_PASSWORD}"
@@ -39,13 +39,13 @@ services:
 
   adminer:
     image: adminer
-    restart: always
+    restart: unless-stopped
     ports:
       - 8085:8080
 
   rabbitmq:
     image: rabbitmq:management
-    restart: always
+    restart: unless-stopped
     ports:
      # AMQP protocal port
      - "5672:5672"
