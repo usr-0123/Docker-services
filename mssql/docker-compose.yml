@@ -1,0 +1,44 @@
+services:
+  mssql:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: mssql
+    restart: unless-stopped
+    environment:
+      ACCEPT_EULA: ${ACCEPT_EULA}
+      MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD}
+      MSSQL_PID: ${MSSQL_PID}
+    ports:
+      - "${MSSQL_PORT}:1433"
+    volumes:
+      - mssql_data:/var/opt/mssql
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P \"$MSSQL_SA_PASSWORD\" -C -Q \"SELECT 1\" || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - mssql_net
+
+  # Universal web-based DB client (SQL Server has no free official web GUI).
+  # CloudBeaver is DBeaver's browser edition and connects to MSSQL, Postgres, Mongo, etc.
+  cloudbeaver:
+    image: dbeaver/cloudbeaver:24.3
+    container_name: cloudbeaver
+    restart: unless-stopped
+    depends_on:
+      mssql:
+        condition: service_healthy
+    ports:
+      - "${CLOUDBEAVER_PORT}:8978"
+    volumes:
+      - cloudbeaver_data:/opt/cloudbeaver/workspace
+    networks:
+      - mssql_net
+
+volumes:
+  mssql_data:
+  cloudbeaver_data:
+
+networks:
+  mssql_net:
+    driver: bridge

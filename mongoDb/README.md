@@ -32,11 +32,11 @@ docker compose down            # stop; add -v to delete data
 
 ```bash
 # Enter the mongo shell
-docker exec -it mongodb mongosh -u admin -p 'Mongo_Pass123!' --authenticationDatabase admin
+docker exec -it mongodb mongosh -u admin -p '<password>' --authenticationDatabase admin
 
 # Run a single command without entering the shell
 docker exec -it mongodb mongosh \
-  -u admin -p 'Mongo_Pass123!' \
+  -u admin -p '<password>' \
   --authenticationDatabase admin \
   --eval "show dbs"
 ```
@@ -51,7 +51,7 @@ use admin
 use appdb
 
 // Authenticate manually (if you connected without credentials)
-db.auth("admin", "Mongo_Pass123!")
+db.auth("admin", "<password>")
 
 // Current database
 db
@@ -64,9 +64,9 @@ db.runCommand({ connectionStatus: 1 })
 
 ```js
 db.getSiblingDB("luminate-development").createUser({
-  user: "luminatedev",
-  pwd: "v0UlXbTTB4sX",
-  roles: [ { role: "readWrite", db: "luminate-development" } ]
+  user: "<username>",
+  pwd: "<password>",
+  roles: [ { role: "readWrite", db: "<database-name>" } ]
 })
 ```
 
@@ -139,10 +139,10 @@ db.adminCommand({ usersInfo: 1 })   // users in the current DB
 
 ```bash
 # Dump the whole server to ./dump on the host
-docker exec -t mongodb mongodump -u admin -p 'Mongo_Pass123!' --authenticationDatabase admin --out /tmp/dump
+docker exec -t mongodb mongodump -u admin -p '<password>' --authenticationDatabase admin --out /tmp/dump
 docker cp mongodb:/tmp/dump ./dump
 
 # Restore a dump directory back into MongoDB
 docker cp ./dump mongodb:/tmp/dump
-docker exec -t mongodb mongorestore -u admin -p 'Mongo_Pass123!' --authenticationDatabase admin /tmp/dump
+docker exec -t mongodb mongorestore -u admin -p '<password>' --authenticationDatabase admin /tmp/dump
 ```
