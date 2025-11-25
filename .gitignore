@@ -1,4 +1,5 @@
 .env
-.idea
-storage/
-uploads/
+**/.env
+!**/.env.example
+
+data/
